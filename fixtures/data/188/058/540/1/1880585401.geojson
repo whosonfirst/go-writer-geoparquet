@@ -1,0 +1,90 @@
+{
+  "id": 1880585401,
+  "type": "Feature",
+  "properties": {
+    "date:cessation_lower": "1930-01-01",
+    "date:cessation_upper": "1939-12-31",
+    "date:inception_lower": "1930-01-01",
+    "date:inception_upper": "1939-12-31",
+    "edtf:cessation": "193X",
+    "edtf:inception": "193X",
+    "geom:area": 0.007138525012499898,
+    "geom:area_square_m": 49339313.289465,
+    "geom:bbox": "-122.455382,37.567660,-122.332747,37.673950",
+    "geom:latitude": 37.62205268597286,
+    "geom:longitude": -122.39613900457829,
+    "iso:country": "US",
+    "millsfield:id": 1746160269,
+    "mz:hierarchy_label": 1,
+    "mz:is_current": -1,
+    "mz:max_zoom": 16,
+    "mz:min_zoom": 11,
+    "sfomuseum:id": "1997.52.040.022",
+    "sfomuseum:placetype": "map",
+    "sfomuseum:uri": "193X",
+    "src:geom": "sfomuseum",
+    "wof:belongsto": [
+      1477855605,
+      102527513,
+      102191575,
+      85633793,
+      102087579,
+      85922583,
+      554784711,
+      85688637,
+      102085387
+    ],
+    "wof:breaches": [],
+    "wof:concordances": {
+      "millsfield:id": 1762829573,
+      "sfomuseum:id": "1997.52.040.022"
+    },
+    "wof:country": "US",
+    "wof:created": 1629326370,
+    "wof:depicts": [],
+    "wof:geomhash": "e268a8d2db800956f4b43666daf48a9c",
+    "wof:hierarchy": [
+      {
+        "building_id": 1477855605,
+        "campus_id": 102527513,
+        "continent_id": 102191575,
+        "country_id": 85633793,
+        "county_id": 102087579,
+        "custom_id": 1880585401,
+        "locality_id": 85922583,
+        "map_id": 1880585401,
+        "postalcode_id": 554784711,
+        "region_id": 85688637
+      },
+      {
+        "building_id": 1477855605,
+        "campus_id": 102527513,
+        "continent_id": 102191575,
+        "country_id": 85633793,
+        "county_id": 102085387,
+        "custom_id": 1880585401,
+        "map_id": 1880585401,
+        "region_id": 85688637
+      }
+    ],
+    "wof:id": 1880585401,
+    "wof:lastmodified": 1716930006,
+    "wof:name": "SFO (193X)",
+    "wof:parent_id": -4,
+    "wof:placetype": "custom",
+    "wof:placetype_alt": [
+      "map"
+    ],
+    "wof:repo": "sfomuseum-data-maps",
+    "wof:superseded_by": [],
+    "wof:supersedes": [],
+    "wof:tags": []
+  },
+  "bbox": [
+    -122.455382,
+    37.56766,
+    -122.332747,
+    37.67395
+  ],
+  "geometry": {"coordinates":[[[-122.450323,37.651356],[-122.430536,37.66263],[-122.408648,37.673809],[-122.403106,37.66728],[-122.390565,37.67395],[-122.374831,37.652156],[-122.365719,37.640179],[-122.349186,37.619513],[-122.332747,37.599551],[-122.349984,37.58903],[-122.368772,37.579073],[-122.389203,37.56766],[-122.419695,37.595384],[-122.421382,37.594402],[-122.436355,37.610524],[-122.455382,37.633322],[-122.442582,37.640342],[-122.44376,37.641655],[-122.450323,37.651356]]],"type":"Polygon"}
+}

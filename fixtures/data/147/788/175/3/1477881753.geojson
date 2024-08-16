@@ -1,0 +1,59 @@
+{
+  "id": 1477881753,
+  "type": "Feature",
+  "properties": {
+    "date:cessation_lower": "2015-01-01",
+    "date:cessation_upper": "2015-12-31",
+    "date:inception_lower": "2015-01-01",
+    "date:inception_upper": "2015-12-31",
+    "edtf:cessation": "2015",
+    "edtf:inception": "2015",
+    "geom:area": 0.002161055788514329,
+    "geom:area_square_m": 21166020.614275,
+    "geom:bbox": "-122.412135,37.598614,-122.347341,37.642482",
+    "geom:latitude": 37.61915817874354,
+    "geom:longitude": -122.3821658484325,
+    "iso:country": "US",
+    "mz:hierarchy_label": 1,
+    "mz:is_current": -1,
+    "mz:max_zoom": 20,
+    "mz:min_zoom": 12,
+    "sfomuseum:placetype": "map",
+    "sfomuseum:uri": "2015",
+    "src:geom": "sfogis",
+    "wof:belongsto": [],
+    "wof:breaches": [],
+    "wof:country": "US",
+    "wof:created": 1569019344,
+    "wof:depicts": [
+      102527513,
+      1159396321
+    ],
+    "wof:geomhash": "9b14adbbf3d44756a40753a09efe25ec",
+    "wof:hierarchy": [
+      {
+        "custom_id": 1477881753,
+        "map_id": 1477881753
+      }
+    ],
+    "wof:id": 1477881753,
+    "wof:lastmodified": 1716594274,
+    "wof:name": "SFO (2015)",
+    "wof:parent_id": -4,
+    "wof:placetype": "custom",
+    "wof:placetype_alt": [
+      "map"
+    ],
+    "wof:repo": "sfomuseum-data-maps",
+    "wof:superseded_by": [],
+    "wof:supersedes": [],
+    "wof:tags": []
+  },
+  "bbox": [
+    -122.41213470126023,
+    37.59861434665235,
+    -122.34734052116703,
+    37.64248234352948
+  ],
+  "geometry": {"coordinates":[[[-122.39827075806956,37.61073610854176],[-122.41134452833226,37.61062229836806],[-122.41213470126023,37.64191353391184],[-122.3762895838916,37.64248234352948],[-122.37595008535027,37.63218636023242],[-122.36160614582333,37.63231105769763],[-122.36155545346361,37.62032930418075],[-122.34798702628991,37.62035243905827],[-122.34734052116703,37.59941114282356],[-122.398198924167,37.59861434665235],[-122.39827075806956,37.61073610854176]]],"type":"Polygon"}
+}

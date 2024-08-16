@@ -1,0 +1,61 @@
+{
+  "id": 1360391325,
+  "type": "Feature",
+  "properties": {
+    "date:cessation_lower": "1947-01-01",
+    "date:cessation_upper": "1947-12-31",
+    "date:inception_lower": "1947-01-01",
+    "date:inception_upper": "1947-12-31",
+    "edtf:cessation": "1947~",
+    "edtf:inception": "1947~",
+    "geom:area": 0.0032379919768967726,
+    "geom:area_square_m": 31712730.156902,
+    "geom:bbox": "-122.419348,37.587893,-122.342814,37.655649",
+    "geom:latitude": 37.6217675332737,
+    "geom:longitude": -122.38107971902136,
+    "iso:country": "US",
+    "lbl:latitude": 37.623772,
+    "lbl:longitude": -122.38298,
+    "mz:hierarchy_label": 1,
+    "mz:is_approximate": 0,
+    "mz:is_current": 1,
+    "mz:max_zoom": 15,
+    "mz:min_zoom": 11,
+    "sfomuseum:placetype": "map",
+    "sfomuseum:uri": "1947",
+    "src:geom": "sfogis",
+    "wof:belongsto": [],
+    "wof:breaches": [],
+    "wof:country": "US",
+    "wof:created": 1619637073,
+    "wof:depicts": [
+      102527513
+    ],
+    "wof:geomhash": "10bffc0c0b99e15ba5e2d6d62f8a6735",
+    "wof:hierarchy": [
+      {
+        "custom_id": 1360391325,
+        "map_id": 1360391325
+      }
+    ],
+    "wof:id": 1360391325,
+    "wof:lastmodified": 1716594274,
+    "wof:name": "SFO (1947)",
+    "wof:parent_id": -4,
+    "wof:placetype": "custom",
+    "wof:placetype_alt": [
+      "map"
+    ],
+    "wof:repo": "sfomuseum-data-maps",
+    "wof:superseded_by": [],
+    "wof:supersedes": [],
+    "wof:tags": []
+  },
+  "bbox": [
+    -122.41934812764804,
+    37.5878928307157,
+    -122.34281403533699,
+    37.65564861583542
+  ],
+  "geometry": {"coordinates":[[[-122.3974444311954,37.5878928307157],[-122.41934812764804,37.64147570418559],[-122.36471622931893,37.65564861583542],[-122.34281403533699,37.60204926561423],[-122.3974444311954,37.5878928307157]]],"type":"Polygon"}
+}
