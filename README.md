@@ -51,7 +51,9 @@ For each Feature record passed to the `Write()` method the code will:
 geoparquet://{PATH}?{PARAMETERS}
 ```
 
-Where `{PATH}` is a valid path on disk where the final GeoParquet database will be written to. Valid paramters are:
+Where `{PATH}` is a valid path on disk where the final GeoParquet database will be written to. If `{PATH}` is empty then data will be written to `STDOUT`.
+
+Valid paramters are:
 
 | Name | Value | Default | Notes |
 | --- | --- | --- | --- |

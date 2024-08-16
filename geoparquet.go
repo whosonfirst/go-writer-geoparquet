@@ -50,12 +50,21 @@ func NewGeoParquetWriter(ctx context.Context, uri string) (writer.Writer, error)
 
 	q := u.Query()
 
-	wr, err := os.OpenFile(u.Path, os.O_RDWR|os.O_CREATE, 0644)
+	var io_writer io.WriteCloser
 
-	if err != nil {
-		return nil, fmt.Errorf("Failed to open %s for writing, %w", u.Path, err)
+	if u.Path == "" {
+		io_writer = os.Stdout
+	} else {
+		
+		wr, err := os.OpenFile(u.Path, os.O_RDWR|os.O_CREATE, 0644)
+		
+		if err != nil {
+			return nil, fmt.Errorf("Failed to open %s for writing, %w", u.Path, err)
+		}
+
+		io_writer = wr
 	}
-
+	
 	min := 10
 	max := 100
 	compression := "zstd"
@@ -111,7 +120,7 @@ func NewGeoParquetWriter(ctx context.Context, uri string) (writer.Writer, error)
 
 	gpq := &GeoParquetWriter{
 		convert_options:   convert_options,
-		io_writer:         wr,
+		io_writer:         io_writer,
 		buffer:            buffer,
 		append_properties: append_properties,
 	}
