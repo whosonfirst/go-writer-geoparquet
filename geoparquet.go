@@ -154,7 +154,9 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 			return 0, fmt.Errorf("Failed to derive SPR from %s, %w", key, err)
 		}
 
+		// FIX ME...
 		return -1, nil
+
 		wof_spr = alt_spr
 	}
 
@@ -176,16 +178,14 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 			// rel_path := strings.Replace(path, "properties.", "", 1)
 
 			p_rsp := old_props.Get(rel_path)
+			abs_path := fmt.Sprintf("properties.%s", rel_path)
 
-			if p_rsp.Exists() {
+			// See this? We're assign a value even it doesn't exist because if we
+			// don't then we end up with uneven properties counts and Parquet is sad.
+			body, err = sjson.SetBytes(body, abs_path, p_rsp.Value())
 
-				abs_path := fmt.Sprintf("properties.%s", rel_path)
-
-				body, err = sjson.SetBytes(body, abs_path, p_rsp.Value())
-
-				if err != nil {
-					return 0, fmt.Errorf("Failed to assign %s to properties, %w", abs_path, err)
-				}
+			if err != nil {
+				return 0, fmt.Errorf("Failed to assign %s to properties, %w", abs_path, err)
 			}
 		}
 	}
@@ -290,6 +290,12 @@ func (gpq *GeoParquetWriter) ensureFeatureWriter(ctx context.Context, f *geo.Fea
 	builder := pqutil.NewArrowSchemaBuilder()
 
 	builder.Add(f.Properties)
+
+	err := builder.AddGeometry(geoparquet.DefaultGeometryColumn, geoparquet.DefaultGeometryEncoding)
+
+	if err != nil {
+		return false, err
+	}
 
 	if !builder.Ready() {
 		return false, nil
