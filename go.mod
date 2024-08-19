@@ -6,6 +6,7 @@ toolchain go1.23.0
 
 require (
 	github.com/apache/arrow/go/v16 v16.1.0
+	github.com/sfomuseum/go-edtf v1.1.1
 	github.com/tidwall/gjson v1.17.0
 	github.com/tidwall/sjson v1.2.5
 	github.com/whosonfirst/go-ioutil v1.0.2
@@ -32,7 +33,6 @@ require (
 	github.com/paulmach/orb v0.11.1 // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1 // indirect
-	github.com/sfomuseum/go-edtf v1.1.1 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/whosonfirst/go-whosonfirst-feature v0.0.27 // indirect

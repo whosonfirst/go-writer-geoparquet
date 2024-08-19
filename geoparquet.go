@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/apache/arrow/go/v16/parquet"
+	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
@@ -20,6 +21,25 @@ import (
 	"github.com/whosonfirst/gpq-fork/not-internal/geoparquet"
 	"github.com/whosonfirst/gpq-fork/not-internal/pqutil"
 )
+
+// This is to account for the disconnect in the JSON-encoded properties between
+// whosonfirst/go-whosonfirst-spr/v2.WOFStandardPlacesResult and WOFAltStandardPlacesResult
+// Since the latter already has a "v3"-triggering bug (described below) that might also
+// be the chance to change the default/expected properties for alt files; that will have
+// a bunch of downstream side-effects so it's still TBD. Until then... this:
+var ensure_alt_properties = map[string]any{
+	"edtf:inception":    edtf.UNKNOWN,
+	"edtf:cessation":    edtf.UNKNOWN,
+	"wof:country":       "",
+	"wof:supersedes":    []int64{},
+	"wof:supersedeb_by": []int64{},
+	"mz:is_current":     -1,
+	"mz:is_ceased":      -1,
+	"mz:is_deprecated":  -1,
+	"mz:is_superseded":  -1,
+	"mz:is_superseding": -1,
+	"wof:lastmodified":  0,
+}
 
 // GeoParquetWriter implements the `writer.Writer` interface for writing GeoParquet records.
 type GeoParquetWriter struct {
@@ -144,6 +164,8 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 		return 0, fmt.Errorf("Failed to read body for %s, %w", key, err)
 	}
 
+	is_alt := false
+
 	wof_spr, err := spr.WhosOnFirstSPR(body)
 
 	if err != nil {
@@ -154,10 +176,8 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 			return 0, fmt.Errorf("Failed to derive SPR from %s, %w", key, err)
 		}
 
-		// FIX ME...
-		return -1, nil
-
 		wof_spr = alt_spr
+		is_alt = true
 	}
 
 	// START OF wrangle properties in to something GeoParquet can work with
@@ -212,6 +232,37 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 
 			if err != nil {
 				return 0, fmt.Errorf("Failed to delete 0-length %s property, %w", path, err)
+			}
+		}
+	}
+
+	if is_alt {
+
+		// Account for a bug in whosonfirst/go-whosonfirst-spr/v2.WOFAltStandardPlacesResult
+		// where the JSON encoding for wof:id returns a string instead of an int. Fixing this
+		// will trigger a "v3" event so until then... this:
+		id_rsp := gjson.GetBytes(body, "properties.wof:id")
+		body, err = sjson.SetBytes(body, "properties.wof:id", id_rsp.Int())
+
+		if err != nil {
+			return 0, fmt.Errorf("Failed to correct string wof:id value in alt record, %w", err)
+		}
+
+		// See notes for ensure_alt_properties above
+		for rel_path, v := range ensure_alt_properties {
+
+			path := fmt.Sprintf("propeties.%s", rel_path)
+
+			rsp := gjson.GetBytes(body, path)
+
+			if rsp.Exists() {
+				continue
+			}
+
+			body, err = sjson.SetBytes(body, path, v)
+
+			if err != nil {
+				return 0, fmt.Errorf("Failed to assign default alt value (%v) for %s, %w", v, path, err)
 			}
 		}
 	}
