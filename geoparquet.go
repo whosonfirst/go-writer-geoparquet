@@ -8,8 +8,11 @@ import (
 	"net/url"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 
+	"log/slog"
+	
 	"github.com/apache/arrow/go/v16/parquet"
 	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
@@ -190,26 +193,41 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 		return 0, fmt.Errorf("Failed to update properties for %s, %w", key, err)
 	}
 
+	alt_rsp := old_props.Get("properties.src:alt_label")
+	body, err = sjson.SetBytes(body, "properties.src:alt_label", alt_rsp.String())
+
+	if err != nil {
+		return 0, fmt.Errorf("Failed to assign src:alt_label to feature, %w", err)
+	}
+	
 	if len(gpq.append_properties) > 0 {
 
-		for _, rel_path := range gpq.append_properties {
+		for _, path := range gpq.append_properties {
 
-			// Because we are deriving this from old_props and not body
-			// rel_path := strings.Replace(path, "properties.", "", 1)
+			if !strings.HasPrefix(path, "properties."){
+				path = fmt.Sprintf("properties.%s", path)				
+			}
+			
+			rsp := gjson.GetBytes(body, path)
 
-			p_rsp := old_props.Get(rel_path)
-			abs_path := fmt.Sprintf("properties.%s", rel_path)
+			if rsp.Exists(){
+				continue
+			}
 
+			p_rsp := old_props.Get(path)
+			
 			// See this? We're assign a value even it doesn't exist because if we
 			// don't then we end up with uneven properties counts and Parquet is sad.
-			body, err = sjson.SetBytes(body, abs_path, p_rsp.Value())
+			body, err = sjson.SetBytes(body, path, p_rsp.Value())
 
 			if err != nil {
-				return 0, fmt.Errorf("Failed to assign %s to properties, %w", abs_path, err)
+				return 0, fmt.Errorf("Failed to assign %s to properties, %w", path, err)
 			}
 		}
 	}
 
+	slog.Info("WUT", "props", gjson.GetBytes(body, "properties").String())
+	
 	// Because the (internal) geoparquet/arrow schema builder is sad when it encounters empty arrays
 	// https://github.com/planetlabs/gpq/blob/main/internal/pqutil/arrow.go#L158-L165
 
