@@ -11,15 +11,35 @@ import (
 	"sync"
 
 	"github.com/apache/arrow/go/v16/parquet"
+	"github.com/sfomuseum/go-edtf"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
-	spr_util "github.com/whosonfirst/go-whosonfirst-spr/v2/util"
 	"github.com/whosonfirst/go-writer/v3"
 	"github.com/whosonfirst/gpq-fork/not-internal/geo"
 	"github.com/whosonfirst/gpq-fork/not-internal/geojson"
 	"github.com/whosonfirst/gpq-fork/not-internal/geoparquet"
 	"github.com/whosonfirst/gpq-fork/not-internal/pqutil"
 )
+
+// This is to account for the disconnect in the JSON-encoded properties between
+// whosonfirst/go-whosonfirst-spr/v2.WOFStandardPlacesResult and WOFAltStandardPlacesResult
+// Since the latter already has a "v3"-triggering bug (described below) that might also
+// be the chance to change the default/expected properties for alt files; that will have
+// a bunch of downstream side-effects so it's still TBD. Until then... this:
+var ensure_alt_properties = map[string]any{
+	"edtf:inception":    edtf.UNKNOWN,
+	"edtf:cessation":    edtf.UNKNOWN,
+	"wof:country":       "",
+	"wof:supersedes":    []int64{},
+	"wof:supersedeb_by": []int64{},
+	"mz:is_current":     -1,
+	"mz:is_ceased":      -1,
+	"mz:is_deprecated":  -1,
+	"mz:is_superseded":  -1,
+	"mz:is_superseding": -1,
+	"wof:lastmodified":  0,
+}
 
 // GeoParquetWriter implements the `writer.Writer` interface for writing GeoParquet records.
 type GeoParquetWriter struct {
@@ -144,6 +164,8 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 		return 0, fmt.Errorf("Failed to read body for %s, %w", key, err)
 	}
 
+	is_alt := false
+
 	wof_spr, err := spr.WhosOnFirstSPR(body)
 
 	if err != nil {
@@ -155,24 +177,97 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 		}
 
 		wof_spr = alt_spr
+		is_alt = true
 	}
 
-	spr_map, err := spr_util.SPRToMap(wof_spr)
+	// START OF wrangle properties in to something GeoParquet can work with
+
+	old_props := gjson.GetBytes(body, "properties")
+
+	body, err = sjson.SetBytes(body, "properties", wof_spr)
 
 	if err != nil {
-		return 0, fmt.Errorf("Failed to convert SPR to map for %s, %w", key, err)
+		return 0, fmt.Errorf("Failed to update properties for %s, %w", key, err)
 	}
 
 	if len(gpq.append_properties) > 0 {
 
 		for _, rel_path := range gpq.append_properties {
 
-			abs_path := fmt.Sprintf("properties.%s", rel_path)
-			rsp := gjson.GetBytes(body, abs_path)
+			// Because we are deriving this from old_props and not body
+			// rel_path := strings.Replace(path, "properties.", "", 1)
 
-			spr_map[rel_path] = rsp.String()
+			p_rsp := old_props.Get(rel_path)
+			abs_path := fmt.Sprintf("properties.%s", rel_path)
+
+			// See this? We're assign a value even it doesn't exist because if we
+			// don't then we end up with uneven properties counts and Parquet is sad.
+			body, err = sjson.SetBytes(body, abs_path, p_rsp.Value())
+
+			if err != nil {
+				return 0, fmt.Errorf("Failed to assign %s to properties, %w", abs_path, err)
+			}
 		}
 	}
+
+	// Because the (internal) geoparquet/arrow schema builder is sad when it encounters empty arrays
+	// https://github.com/planetlabs/gpq/blob/main/internal/pqutil/arrow.go#L158-L165
+
+	ensure_length := []string{
+		"properties.wof:supersedes",
+		"properties.wof:superseded_by",
+	}
+
+	for _, path := range ensure_length {
+
+		rsp := gjson.GetBytes(body, path)
+
+		if !rsp.Exists() {
+			continue
+		}
+
+		if len(rsp.Array()) == 0 {
+
+			body, err = sjson.DeleteBytes(body, path)
+
+			if err != nil {
+				return 0, fmt.Errorf("Failed to delete 0-length %s property, %w", path, err)
+			}
+		}
+	}
+
+	if is_alt {
+
+		// Account for a bug in whosonfirst/go-whosonfirst-spr/v2.WOFAltStandardPlacesResult
+		// where the JSON encoding for wof:id returns a string instead of an int. Fixing this
+		// will trigger a "v3" event so until then... this:
+		id_rsp := gjson.GetBytes(body, "properties.wof:id")
+		body, err = sjson.SetBytes(body, "properties.wof:id", id_rsp.Int())
+
+		if err != nil {
+			return 0, fmt.Errorf("Failed to correct string wof:id value in alt record, %w", err)
+		}
+
+		// See notes for ensure_alt_properties above
+		for rel_path, v := range ensure_alt_properties {
+
+			path := fmt.Sprintf("propeties.%s", rel_path)
+
+			rsp := gjson.GetBytes(body, path)
+
+			if rsp.Exists() {
+				continue
+			}
+
+			body, err = sjson.SetBytes(body, path, v)
+
+			if err != nil {
+				return 0, fmt.Errorf("Failed to assign default alt value (%v) for %s, %w", v, path, err)
+			}
+		}
+	}
+
+	// END OF wrangle properties in to something GeoParquet can work with
 
 	var f *geo.Feature
 
@@ -181,14 +276,6 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 	if err != nil {
 		return 0, fmt.Errorf("Failed to unmarshal Feature from %s, %w", key, err)
 	}
-
-	gpq_props := make(map[string]any)
-
-	for k, v := range spr_map {
-		gpq_props[k] = v
-	}
-
-	f.Properties = gpq_props
 
 	ready, err := gpq.ensureFeatureWriter(ctx, f)
 
@@ -207,7 +294,7 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 	err = gpq.flushBuffer(ctx)
 
 	if err != nil {
-		return -1, fmt.Errorf("Failed to flush pending buffer (%s), %w", key, err)
+		return 0, fmt.Errorf("Failed to flush pending buffer (%s), %w", key, err)
 	}
 
 	err = gpq.feature_writer.Write(f)
@@ -254,6 +341,12 @@ func (gpq *GeoParquetWriter) ensureFeatureWriter(ctx context.Context, f *geo.Fea
 	builder := pqutil.NewArrowSchemaBuilder()
 
 	builder.Add(f.Properties)
+
+	err := builder.AddGeometry(geoparquet.DefaultGeometryColumn, geoparquet.DefaultGeometryEncoding)
+
+	if err != nil {
+		return false, err
+	}
 
 	if !builder.Ready() {
 		return false, nil
