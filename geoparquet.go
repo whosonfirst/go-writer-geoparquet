@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	_ "log/slog"
 	"net/url"
 	"os"
 	"strconv"
@@ -190,15 +191,33 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 		return 0, fmt.Errorf("Failed to update properties for %s, %w", key, err)
 	}
 
+	body, err = sjson.SetBytes(body, "properties.mz:is_alt", is_alt)
+
+	if err != nil {
+		return 0, fmt.Errorf("Failed to assign mz:is_alt, %w", err)
+	}
+
+	alt_rsp := old_props.Get("src:alt_label")
+	body, err = sjson.SetBytes(body, "properties.src:alt_label", alt_rsp.String())
+
+	if err != nil {
+		return 0, fmt.Errorf("Failed to assign src:alt_label property, %w", err)
+	}
+
 	if len(gpq.append_properties) > 0 {
 
 		for _, rel_path := range gpq.append_properties {
 
-			// Because we are deriving this from old_props and not body
-			// rel_path := strings.Replace(path, "properties.", "", 1)
-
-			p_rsp := old_props.Get(rel_path)
 			abs_path := fmt.Sprintf("properties.%s", rel_path)
+			rsp := gjson.GetBytes(body, abs_path)
+
+			if rsp.Exists() {
+				continue
+			}
+
+			// Remember: This is a "properties" blob so the path
+			// should be relative
+			p_rsp := old_props.Get(rel_path)
 
 			// See this? We're assign a value even it doesn't exist because if we
 			// don't then we end up with uneven properties counts and Parquet is sad.
