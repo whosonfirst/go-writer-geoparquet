@@ -73,3 +73,4 @@ This package uses [a hard fork](https://github.com/whosonfirst/gpq-fork) of the 
 * * https://github.com/whosonfirst/go-whosonfirst-spr
 * https://github.com/whosonfirst/gpq-fork
 * https://github.com/planetlabs/gpq
+* https://github.com/cholmes/duckdb-geoparquet-tutorials
