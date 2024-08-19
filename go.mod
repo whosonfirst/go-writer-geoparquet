@@ -7,6 +7,7 @@ toolchain go1.23.0
 require (
 	github.com/apache/arrow/go/v16 v16.1.0
 	github.com/tidwall/gjson v1.17.0
+	github.com/tidwall/sjson v1.2.5
 	github.com/whosonfirst/go-ioutil v1.0.2
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
 	github.com/whosonfirst/go-writer/v3 v3.1.1

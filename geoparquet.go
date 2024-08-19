@@ -12,8 +12,8 @@ import (
 
 	"github.com/apache/arrow/go/v16/parquet"
 	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"github.com/whosonfirst/go-whosonfirst-spr/v2"
-	spr_util "github.com/whosonfirst/go-whosonfirst-spr/v2/util"
 	"github.com/whosonfirst/go-writer/v3"
 	"github.com/whosonfirst/gpq-fork/not-internal/geo"
 	"github.com/whosonfirst/gpq-fork/not-internal/geojson"
@@ -154,25 +154,69 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 			return 0, fmt.Errorf("Failed to derive SPR from %s, %w", key, err)
 		}
 
+		return -1, nil
 		wof_spr = alt_spr
 	}
 
-	spr_map, err := spr_util.SPRToMap(wof_spr)
+	// START OF wrangle properties in to something GeoParquet can work with
+
+	old_props := gjson.GetBytes(body, "properties")
+
+	body, err = sjson.SetBytes(body, "properties", wof_spr)
 
 	if err != nil {
-		return 0, fmt.Errorf("Failed to convert SPR to map for %s, %w", key, err)
+		return 0, fmt.Errorf("Failed to update properties for %s, %w", key, err)
 	}
 
 	if len(gpq.append_properties) > 0 {
 
 		for _, rel_path := range gpq.append_properties {
 
-			abs_path := fmt.Sprintf("properties.%s", rel_path)
-			rsp := gjson.GetBytes(body, abs_path)
+			// Because we are deriving this from old_props and not body
+			// rel_path := strings.Replace(path, "properties.", "", 1)
 
-			spr_map[rel_path] = rsp.String()
+			p_rsp := old_props.Get(rel_path)
+
+			if p_rsp.Exists() {
+
+				abs_path := fmt.Sprintf("properties.%s", rel_path)
+
+				body, err = sjson.SetBytes(body, abs_path, p_rsp.Value())
+
+				if err != nil {
+					return 0, fmt.Errorf("Failed to assign %s to properties, %w", abs_path, err)
+				}
+			}
 		}
 	}
+
+	// Because the (internal) geoparquet/arrow schema builder is sad when it encounters empty arrays
+	// https://github.com/planetlabs/gpq/blob/main/internal/pqutil/arrow.go#L158-L165
+
+	ensure_length := []string{
+		"properties.wof:supersedes",
+		"properties.wof:superseded_by",
+	}
+
+	for _, path := range ensure_length {
+
+		rsp := gjson.GetBytes(body, path)
+
+		if !rsp.Exists() {
+			continue
+		}
+
+		if len(rsp.Array()) == 0 {
+
+			body, err = sjson.DeleteBytes(body, path)
+
+			if err != nil {
+				return 0, fmt.Errorf("Failed to delete 0-length %s property, %w", path, err)
+			}
+		}
+	}
+
+	// END OF wrangle properties in to something GeoParquet can work with
 
 	var f *geo.Feature
 
@@ -181,14 +225,6 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 	if err != nil {
 		return 0, fmt.Errorf("Failed to unmarshal Feature from %s, %w", key, err)
 	}
-
-	gpq_props := make(map[string]any)
-
-	for k, v := range spr_map {
-		gpq_props[k] = v
-	}
-
-	f.Properties = gpq_props
 
 	ready, err := gpq.ensureFeatureWriter(ctx, f)
 
@@ -207,7 +243,7 @@ func (gpq *GeoParquetWriter) Write(ctx context.Context, key string, r io.ReadSee
 	err = gpq.flushBuffer(ctx)
 
 	if err != nil {
-		return -1, fmt.Errorf("Failed to flush pending buffer (%s), %w", key, err)
+		return 0, fmt.Errorf("Failed to flush pending buffer (%s), %w", key, err)
 	}
 
 	err = gpq.feature_writer.Write(f)
