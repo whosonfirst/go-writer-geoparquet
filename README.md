@@ -31,6 +31,8 @@ func main() {
 
 Have a look at [geoparquet_test.go](geoparquet_test.go) for a complete example of how to use the package.
 
+If you are just looking for something to create a GeoParquet file from one or more Who's On First data repositories, take a look at the [whosonfirst/wof-cli `emit` tool](https://github.com/whosonfirst/wof-cli/blob/main/emit/README.md#example-geoparquet).
+
 ### How does it work?
 
 First of all, this writer only works with GeoJSON Feature records.
