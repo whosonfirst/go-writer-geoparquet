@@ -69,8 +69,8 @@ This package uses [a hard fork](https://github.com/whosonfirst/gpq-fork) of the 
 
 ## See also
 
-* * https://github.com/whosonfirst/go-writer
-* * https://github.com/whosonfirst/go-whosonfirst-spr
+* https://github.com/whosonfirst/go-writer
+* https://github.com/whosonfirst/go-whosonfirst-spr
 * https://github.com/whosonfirst/gpq-fork
 * https://github.com/planetlabs/gpq
 * https://github.com/cholmes/duckdb-geoparquet-tutorials
