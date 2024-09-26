@@ -118,7 +118,7 @@ github.com/pierrec/lz4/v4/internal/xxh32
 ## explicit; go 1.19
 github.com/santhosh-tekuri/jsonschema/v5
 github.com/santhosh-tekuri/jsonschema/v5/httploader
-# github.com/sfomuseum/go-edtf v1.1.1
+# github.com/sfomuseum/go-edtf v1.2.1
 ## explicit; go 1.12
 github.com/sfomuseum/go-edtf
 github.com/sfomuseum/go-edtf/calendar
@@ -129,7 +129,7 @@ github.com/sfomuseum/go-edtf/level2
 github.com/sfomuseum/go-edtf/parser
 github.com/sfomuseum/go-edtf/re
 github.com/sfomuseum/go-edtf/tests
-# github.com/tidwall/gjson v1.17.0
+# github.com/tidwall/gjson v1.17.3
 ## explicit; go 1.12
 github.com/tidwall/gjson
 # github.com/tidwall/match v1.1.1

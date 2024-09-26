@@ -1,13 +1,11 @@
 module github.com/whosonfirst/go-writer-geoparquet/v3
 
-go 1.22.1
-
-toolchain go1.23.0
+go 1.23
 
 require (
 	github.com/apache/arrow/go/v16 v16.1.0
-	github.com/sfomuseum/go-edtf v1.1.1
-	github.com/tidwall/gjson v1.17.0
+	github.com/sfomuseum/go-edtf v1.2.1
+	github.com/tidwall/gjson v1.17.3
 	github.com/tidwall/sjson v1.2.5
 	github.com/whosonfirst/go-ioutil v1.0.2
 	github.com/whosonfirst/go-whosonfirst-spr/v2 v2.3.7
